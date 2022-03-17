@@ -71,6 +71,14 @@ $utilities: map-merge(
         none: none,
       )
     ),
+    "white-outline": (
+      property: box-shadow,
+      class: shadow,
+      values: (
+        null: $box-outline,
+        none: none
+      )
+    ),
     // scss-docs-end utils-shadow
     // scss-docs-start utils-position
     "position": (

@@ -577,6 +577,9 @@ $box-shadow-lg:               0 1rem 3rem rgba($black, .175) !default;
 $box-shadow-inset:            inset 0px 0px 0px 2px rgba($white, 0.1) !default;
 // scss-docs-end box-shadow-variables
 
+// idk- shadow smth
+$box-outline:                  0 0 0 1px $white;
+
 $component-active-color:      $white !default;
 $component-active-bg:         $primary !default;
 
