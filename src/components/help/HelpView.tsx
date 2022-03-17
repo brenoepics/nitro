@@ -2,9 +2,10 @@ import { ILinkEventTracker } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useState } from 'react';
 import { AddEventLinkTracker, LocalizeText, RemoveLinkEventTracker } from '../../api';
 import { Base, Column, Grid, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../common';
-import { HelpReportUserEvent } from '../../events/help/HelpReportUserEvent';
+import { HelpReportEvent } from '../../events/help/HelpReportEvent';
 import { UseUiEvent } from '../../hooks';
 import { IHelpReportState } from './common/IHelpReportState';
+import { ReportType } from './common/ReportType';
 import { HelpContextProvider } from './HelpContext';
 import { HelpMessageHandler } from './HelpMessageHandler';
 import { DescribeReportView } from './views/DescribeReportView';
@@ -15,18 +16,21 @@ import { SelectReportedChatsView } from './views/SelectReportedChatsView';
 import { SelectReportedUserView } from './views/SelectReportedUserView';
 import { SelectTopicView } from './views/SelectTopicView';
 
+const defaultReportState = {
+    reportType: ReportType.BULLY,
+    reportedUserId: -1,
+    reportedChats: [],
+    cfhCategory: -1,
+    cfhTopic: -1,
+    roomId: -1,
+    message: '',
+    currentStep: 0
+};
+
 export const HelpView: FC<{}> = props =>
 {
     const [ isVisible, setIsVisible ] = useState(false);
-    const [ helpReportState, setHelpReportState ] = useState<IHelpReportState>({
-        reportedUserId: -1,
-        reportedChats: [],
-        cfhCategory: -1,
-        cfhTopic: -1,
-        roomId: -1,
-        message: '',
-        currentStep: 0
-    });
+    const [ helpReportState, setHelpReportState ] = useState<IHelpReportState>(defaultReportState);
 
     const linkReceived = useCallback((url: string) =>
     {
@@ -48,22 +52,31 @@ export const HelpView: FC<{}> = props =>
         }
     }, []);
 
-    const onHelpReportUserEvent = useCallback((event: HelpReportUserEvent) =>
+    const onHelpReportEvent = useCallback((event: HelpReportEvent) =>
     {
-        setHelpReportState({
-            reportedUserId: event.reportedUserId,
-            reportedChats: [],
-            cfhCategory: -1,
-            cfhTopic: -1,
-            roomId: -1,
-            message: '',
-            currentStep: 2
-        });
+        let report: IHelpReportState;
+
+        switch(event.reportType)
+        {
+            case ReportType.BULLY:
+                report = {
+                    reportType: event.reportType,
+                    reportedUserId: event.reportedUserId,
+                    reportedChats: [],
+                    cfhCategory: -1,
+                    cfhTopic: -1,
+                    roomId: -1,
+                    message: '',
+                    currentStep: 2
+                }
+
+        }
+        setHelpReportState(report);
         
         setIsVisible(true);
     }, []);
 
-    UseUiEvent(HelpReportUserEvent.REPORT_USER, onHelpReportUserEvent);
+    UseUiEvent(HelpReportEvent.REPORT, onHelpReportEvent);
 
     useEffect(() =>
     {
@@ -81,15 +94,7 @@ export const HelpView: FC<{}> = props =>
     {
         if(!isVisible) return;
 
-        setHelpReportState({
-            reportedUserId: -1,
-            reportedChats: [],
-            cfhCategory: -1,
-            cfhTopic: -1,
-            roomId: -1,
-            message: '',
-            currentStep: 0
-        });
+        setHelpReportState(defaultReportState);
     }, [ isVisible ]);
 
     const CurrentStepView = useCallback(() =>

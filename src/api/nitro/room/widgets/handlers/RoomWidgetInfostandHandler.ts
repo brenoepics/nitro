@@ -2,8 +2,9 @@ import { IFurnitureData, NitroEvent, ObjectDataFactory, PetFigureData, PetRespec
 import { SendMessageComposer } from '../../..';
 import { GetNitroInstance, GetRoomEngine, GetSessionDataManager, IsOwnerOfFurniture } from '../../../..';
 import { FriendsHelper } from '../../../../../components/friends/common/FriendsHelper';
+import { ReportType } from '../../../../../components/help/common/ReportType';
 import { PetSupplementEnum } from '../../../../../components/room/widgets/avatar-info/common/PetSupplementEnum';
-import { FriendsSendFriendRequestEvent, HelpReportUserEvent, InventoryTradeRequestEvent, WiredSelectObjectEvent } from '../../../../../events';
+import { FriendsSendFriendRequestEvent, HelpReportEvent, InventoryTradeRequestEvent, WiredSelectObjectEvent } from '../../../../../events';
 import { DispatchUiEvent } from '../../../../../hooks';
 import { LocalizeText } from '../../../../utils/LocalizeText';
 import { RoomWidgetObjectNameEvent, RoomWidgetUpdateChatInputContentEvent, RoomWidgetUpdateEvent, RoomWidgetUpdateInfostandFurniEvent, RoomWidgetUpdateInfostandPetEvent, RoomWidgetUpdateInfostandRentableBotEvent, RoomWidgetUpdateInfostandUserEvent } from '../events';
@@ -167,7 +168,9 @@ export class RoomWidgetInfostandHandler extends RoomWidgetHandler
             case RoomWidgetUserActionMessage.REPORT:
                 return;
             case RoomWidgetUserActionMessage.REPORT_CFH_OTHER:
-                DispatchUiEvent(new HelpReportUserEvent(userId));
+                const reportEvent = new HelpReportEvent(ReportType.BULLY);
+                reportEvent.reportedUserId = userId;
+                DispatchUiEvent(reportEvent);
                 return;
             case RoomWidgetUserActionMessage.AMBASSADOR_ALERT_USER:
                 this.container.roomSession.sendAmbassadorAlertMessage(userId);

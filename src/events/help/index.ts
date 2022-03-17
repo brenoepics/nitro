@@ -1,2 +1,2 @@
 export * from './HelpNameChangeEvent';
-export * from './HelpReportUserEvent';
+export * from './HelpReportEvent';
