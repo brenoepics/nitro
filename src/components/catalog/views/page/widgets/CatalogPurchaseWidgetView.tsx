@@ -131,8 +131,11 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = pro
     {
         if(!currentOffer) return;
 
-        setPurchaseState(CatalogPurchaseState.NONE);
-        setPurchaseOptions({ quantity: 1, extraData: '', extraParamRequired: false, previewStuffData: null });
+        return () =>
+        {
+            setPurchaseState(CatalogPurchaseState.NONE);
+            setPurchaseOptions({ quantity: 1, extraData: '', extraParamRequired: false, previewStuffData: null });
+        }
     }, [ currentOffer, setPurchaseOptions ]);
 
     useEffect(() =>
@@ -168,7 +171,7 @@ export const CatalogPurchaseWidgetView: FC<CatalogPurchaseWidgetViewProps> = pro
         switch(purchaseState)
         {
             case CatalogPurchaseState.CONFIRM:
-                return <Button onClick={ event => purchase() }>{ LocalizeText('catalog.marketplace.confirm_title') }</Button>;
+                return <Button variant='warning' onClick={ event => purchase() }>{ LocalizeText('catalog.marketplace.confirm_title') }</Button>;
             case CatalogPurchaseState.PURCHASE:
                 return <Button disabled><LayoutLoadingSpinnerView /></Button>;
             case CatalogPurchaseState.FAILED:
