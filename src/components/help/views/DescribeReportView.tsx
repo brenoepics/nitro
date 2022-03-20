@@ -1,31 +1,34 @@
-import { CallForHelpMessageComposer } from '@nitrots/nitro-renderer';
-import { FC, useState } from 'react';
-import { CreateLinkEvent, LocalizeText, SendMessageComposer } from '../../../api';
-import { Button, Column, Text } from '../../../common';
+import { FC, useCallback, useState } from 'react';
+import { LocalizeText } from '../../../api';
+import { Button, Column, Flex, Text } from '../../../common';
+import { ReportState } from '../common/ReportState';
 import { useHelpContext } from '../HelpContext';
 
 export const DescribeReportView: FC<{}> = props =>
 {
     const [ message, setMessage ] = useState('');
-    const { helpReportState = null, setHelpReportState = null } = useHelpContext();
-    const { reportedChats, cfhTopic, reportedUserId } = helpReportState;
+    const { setHelpReportState = null } = useHelpContext();
 
-    const submitReport = () =>
+    const submitMessage = useCallback(() =>
     {
         if(message.length < 15) return;
 
-        const roomId = reportedChats[0].roomId;
-        const chats: (string | number )[] = [];
-
-        reportedChats.forEach(entry =>
+        setHelpReportState(prevValue =>
         {
-            chats.push(entry.entityId);
-            chats.push(entry.message);
+            const currentStep = ReportState.REPORT_SUMMARY;
+
+            return { ...prevValue, message, currentStep };
         });
+    }, [message, setHelpReportState]);
 
-        SendMessageComposer(new CallForHelpMessageComposer(message, cfhTopic, reportedUserId, roomId, chats));
+    const back = () =>
+    {
+        setHelpReportState(prevValue =>
+            {
+                const currentStep = (prevValue.currentStep - 1);
 
-        CreateLinkEvent('help/hide');
+                return { ...prevValue, currentStep };
+            });
     }
 
     return (
@@ -35,9 +38,14 @@ export const DescribeReportView: FC<{}> = props =>
                 <Text>{ LocalizeText('help.cfh.input.text') }</Text>
             </Column>
             <textarea className="form-control h-100" value={ message } onChange={ event => setMessage(event.target.value) } />
-            <Button variant="success" disabled={ (message.length < 15) } onClick={ submitReport }>
-                { LocalizeText('help.bully.submit') }
-            </Button>
+            <Flex gap={ 2 } justifyContent="between">
+                <Button variant="secondary" onClick={ back }>
+                    { LocalizeText('generic.back') }
+                </Button>
+                <Button disabled={ (message.length < 15) } onClick={ submitMessage }>
+                    { LocalizeText('help.emergency.main.submit.button') }
+                </Button>
+            </Flex>
         </>
     );
 }

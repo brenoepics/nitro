@@ -3,14 +3,16 @@ import { FC, useCallback, useEffect, useState } from 'react';
 import { AddEventLinkTracker, LocalizeText, RemoveLinkEventTracker } from '../../api';
 import { Base, Column, Grid, NitroCardContentView, NitroCardHeaderView, NitroCardView } from '../../common';
 import { HelpReportEvent } from '../../events/help/HelpReportEvent';
-import { UseUiEvent } from '../../hooks';
+import { BatchUpdates, UseUiEvent } from '../../hooks';
 import { IHelpReportState } from './common/IHelpReportState';
+import { ReportState } from './common/ReportState';
 import { ReportType } from './common/ReportType';
 import { HelpContextProvider } from './HelpContext';
 import { HelpMessageHandler } from './HelpMessageHandler';
 import { DescribeReportView } from './views/DescribeReportView';
 import { HelpIndexView } from './views/HelpIndexView';
 import { NameChangeView } from './views/name-change/NameChangeView';
+import { ReportSummaryView } from './views/ReportSummaryView';
 import { SanctionSatusView } from './views/SanctionStatusView';
 import { SelectReportedChatsView } from './views/SelectReportedChatsView';
 import { SelectReportedUserView } from './views/SelectReportedUserView';
@@ -23,6 +25,10 @@ const defaultReportState = {
     cfhCategory: -1,
     cfhTopic: -1,
     roomId: -1,
+    roomName: '',
+    messageId: -1,
+    threadId: -1,
+    groupId: -1,
     message: '',
     currentStep: 0
 };
@@ -49,31 +55,62 @@ export const HelpView: FC<{}> = props =>
             case 'toggle':
                 setIsVisible(prevValue => !prevValue);
                 return;
+            case 'tour':
+                // todo: launch tour
+                return;
+            case 'report':
+                if(parts.length >= 5 && parts[2] === 'room')
+                {
+                    const roomId = parseInt(parts[3]);
+                    const unknown = unescape(parts.splice(4).join('/'));
+                    //this.reportRoom(roomId, unknown, "");
+                }
+                return;
         }
     }, []);
 
     const onHelpReportEvent = useCallback((event: HelpReportEvent) =>
     {
-        let report: IHelpReportState;
+        let report: IHelpReportState = defaultReportState;
+
+        report.reportType =  event.reportType;
 
         switch(event.reportType)
         {
             case ReportType.BULLY:
-                report = {
-                    reportType: event.reportType,
-                    reportedUserId: event.reportedUserId,
-                    reportedChats: [],
-                    cfhCategory: -1,
-                    cfhTopic: -1,
-                    roomId: -1,
-                    message: '',
-                    currentStep: 2
-                }
-
+            case ReportType.EMERGENCY:
+            case ReportType.IM:
+                report.reportedUserId = event.reportedUserId;
+                report.currentStep = ReportState.SELECT_CHATS;
+                break;
+            case ReportType.ROOM:
+                report.roomId = event.reportedRoomId;
+                report.roomName = event.reportedRoomName;
+                report.currentStep = ReportState.SELECT_TOPICS;
+                break;
+            case ReportType.THREAD:
+                report.groupId = event.reportedGroupId;
+                report.threadId = event.reportedThreadId;
+                report.currentStep = ReportState.SELECT_TOPICS;
+                break;
+            case ReportType.MESSAGE:
+                report.groupId = event.reportedGroupId;
+                report.threadId = event.reportedThreadId;
+                report.messageId = event.reportedMessageId;
+                report.currentStep = ReportState.SELECT_TOPICS;
+                break;
+            case ReportType.PHOTO:
+                break;
+            case ReportType.GUIDE:
+                break;
         }
-        setHelpReportState(report);
         
-        setIsVisible(true);
+        BatchUpdates(() =>
+        {
+            setHelpReportState(report);
+            setIsVisible(true);
+        });
+        
     }, []);
 
     UseUiEvent(HelpReportEvent.REPORT, onHelpReportEvent);
@@ -101,11 +138,12 @@ export const HelpView: FC<{}> = props =>
     {
         switch(helpReportState.currentStep)
         {
-            case 0: return <HelpIndexView />
-            case 1: return <SelectReportedUserView />
-            case 2: return <SelectReportedChatsView />
-            case 3: return <SelectTopicView />
-            case 4: return <DescribeReportView />
+            case ReportState.INDEX: return <HelpIndexView />
+            case ReportState.SELECT_USER: return <SelectReportedUserView />
+            case ReportState.SELECT_CHATS: return <SelectReportedChatsView />
+            case ReportState.SELECT_TOPICS: return <SelectTopicView />
+            case ReportState.INPUT_REPORT_MESSAGE: return <DescribeReportView />
+            case ReportState.REPORT_SUMMARY: return <ReportSummaryView />
         }
 
         return null;

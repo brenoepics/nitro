@@ -4,18 +4,21 @@ import { LocalizeText, SendMessageComposer } from '../../../api';
 import { Button, Column, Text } from '../../../common';
 import { GuideToolEvent } from '../../../events';
 import { DispatchUiEvent } from '../../../hooks';
+import { ReportState } from '../common/ReportState';
 import { useHelpContext } from '../HelpContext';
 
 export const HelpIndexView: FC<{}> = props =>
 {
-    const { helpReportState = null, setHelpReportState = null } = useHelpContext();
+    const { setHelpReportState = null } = useHelpContext();
     
     const onReportClick = useCallback(() =>
     {
-        const reportState = Object.assign({}, helpReportState );
-        reportState.currentStep = 1;
-        setHelpReportState(reportState);
-    },[helpReportState, setHelpReportState]);
+        setHelpReportState( prev => 
+        {
+            const currentStep = ReportState.SELECT_USER;
+            return { ...prev, currentStep }
+        } );
+    },[setHelpReportState]);
 
     const onRequestMySanctionStatusClick = useCallback(() =>
     {

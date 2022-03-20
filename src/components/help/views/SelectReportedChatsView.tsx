@@ -5,6 +5,7 @@ import { AutoGrid, Button, Column, Flex, LayoutGridItem, Text } from '../../../c
 import { ChatEntryType } from '../../chat-history/common/ChatEntryType';
 import { GetChatHistory } from '../../chat-history/common/GetChatHistory';
 import { IChatEntry } from '../../chat-history/common/IChatEntry';
+import { ReportState } from '../common/ReportState';
 import { useHelpContext } from '../HelpContext';
 
 export const SelectReportedChatsView: FC<{}> = props =>
@@ -35,7 +36,7 @@ export const SelectReportedChatsView: FC<{}> = props =>
         setHelpReportState(prevValue =>
             {
                 const reportedChats = Array.from(selectedChats.values());
-                const currentStep = 3;
+                const currentStep = ReportState.SELECT_TOPICS;
 
                 return { ...prevValue, reportedChats, currentStep };
             });
