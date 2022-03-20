@@ -5,6 +5,7 @@ import { AutoGrid, Button, Column, Flex, LayoutGridItem, Text } from '../../../c
 import { ChatEntryType } from '../../chat-history/common/ChatEntryType';
 import { GetChatHistory } from '../../chat-history/common/GetChatHistory';
 import { IReportedUser } from '../common/IReportedUser';
+import { ReportState } from '../common/ReportState';
 import { useHelpContext } from '../HelpContext';
 
 export const SelectReportedUserView: FC<{}> = props =>
@@ -37,7 +38,7 @@ export const SelectReportedUserView: FC<{}> = props =>
         setHelpReportState(prevValue =>
             {
                 const reportedUserId = selectedUserId;
-                const currentStep = 2;
+                const currentStep = ReportState.SELECT_CHATS;
 
                 return { ...prevValue, reportedUserId, currentStep };
             });

@@ -2,12 +2,13 @@ import { FC, useCallback, useState } from 'react';
 import { LocalizeText } from '../../../api';
 import { Button, Column, Flex, Text } from '../../../common';
 import { ReportState } from '../common/ReportState';
+import { ReportType } from '../common/ReportType';
 import { useHelpContext } from '../HelpContext';
 
 export const DescribeReportView: FC<{}> = props =>
 {
     const [ message, setMessage ] = useState('');
-    const { setHelpReportState = null } = useHelpContext();
+    const { setHelpReportState = null, helpReportState } = useHelpContext();
 
     const submitMessage = useCallback(() =>
     {
@@ -39,7 +40,7 @@ export const DescribeReportView: FC<{}> = props =>
             </Column>
             <textarea className="form-control h-100" value={ message } onChange={ event => setMessage(event.target.value) } />
             <Flex gap={ 2 } justifyContent="between">
-                <Button variant="secondary" onClick={ back }>
+                <Button variant="secondary" disabled={ !(helpReportState.reportType === ReportType.BULLY || helpReportState.reportType === ReportType.EMERGENCY) } onClick={ back }>
                     { LocalizeText('generic.back') }
                 </Button>
                 <Button disabled={ (message.length < 15) } onClick={ submitMessage }>

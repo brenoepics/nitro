@@ -6,18 +6,27 @@ import { ChatEntryType } from '../../chat-history/common/ChatEntryType';
 import { GetChatHistory } from '../../chat-history/common/GetChatHistory';
 import { IChatEntry } from '../../chat-history/common/IChatEntry';
 import { ReportState } from '../common/ReportState';
+import { ReportType } from '../common/ReportType';
 import { useHelpContext } from '../HelpContext';
 
 export const SelectReportedChatsView: FC<{}> = props =>
 {
     const [ selectedChats, setSelectedChats ] = useState<Map<number, IChatEntry>>(new Map());
     const { helpReportState = null, setHelpReportState = null } = useHelpContext();
-    const { reportedUserId = -1 } = helpReportState;
+    const { reportedUserId = -1, reportType } = helpReportState;
 
     const userChats = useMemo(() =>
     {
-        return GetChatHistory().chats.filter(chat => (chat.type === ChatEntryType.TYPE_CHAT) && (chat.entityId === reportedUserId) && (chat.entityType === RoomObjectType.USER));
-    }, [ reportedUserId ]);
+        switch(reportType)
+        {
+            case ReportType.BULLY:
+            case ReportType.EMERGENCY:
+                return GetChatHistory().chats.filter(chat => (chat.type === ChatEntryType.TYPE_CHAT) && (chat.entityId === reportedUserId) && (chat.entityType === RoomObjectType.USER));
+            case ReportType.IM:
+                //todo; 
+        }
+       
+    }, [reportType, reportedUserId]);
 
     const selectChat = (chatEntry: IChatEntry) =>
     {
@@ -74,7 +83,7 @@ export const SelectReportedChatsView: FC<{}> = props =>
                     </AutoGrid> }
             </Column>
             <Flex gap={ 2 } justifyContent="between">
-                <Button variant="secondary" onClick={ back }>
+                <Button variant="secondary" onClick={ back } disabled={ reportType === ReportType.IM }>
                     { LocalizeText('generic.back') }
                 </Button>
                 <Button disabled={ (selectedChats.size <= 0) } onClick={ submitChats }>

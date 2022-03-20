@@ -2,6 +2,7 @@ import { FC, useMemo, useState } from 'react';
 import { LocalizeText } from '../../../api';
 import { Button, Column, Flex, Text } from '../../../common';
 import { GetCfhCategories } from '../../mod-tools/common/GetCFHCategories';
+import { ReportState } from '../common/ReportState';
 import { useHelpContext } from '../HelpContext';
 
 export const SelectTopicView: FC<{}> = props =>
@@ -20,7 +21,7 @@ export const SelectTopicView: FC<{}> = props =>
             {
                 const cfhCategory = selectedCategory;
                 const cfhTopic = cfhCategories[selectedCategory].topics[selectedTopic].id;
-                const currentStep = 4;
+                const currentStep = ReportState.INPUT_REPORT_MESSAGE;
 
                 return { ...prevValue, cfhCategory, cfhTopic, currentStep };
             });

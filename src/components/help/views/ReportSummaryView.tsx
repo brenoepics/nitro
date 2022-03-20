@@ -6,7 +6,7 @@ import { useHelpContext } from '../HelpContext';
 
 export const ReportSummaryView: FC<{}> = props =>
 {
-    const { helpReportState = null, setHelpReportState = null } = useHelpContext();
+    const { helpReportState = null } = useHelpContext();
     const { reportedChats, cfhTopic, reportedUserId, message } = helpReportState;
     
     const submitReport = () =>
