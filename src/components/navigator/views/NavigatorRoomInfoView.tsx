@@ -20,13 +20,15 @@ export const NavigatorRoomInfoView: FC<NavigatorRoomInfoViewProps> = props =>
     const [ isRoomPicked, setIsRoomPicked ] = useState(false);
     const [ isRoomMuted, setIsRoomMuted ] = useState(false);
     const { navigatorData = null } = useNavigatorContext();
+    const isMod = GetSessionDataManager().isModerator;
+
 
     const hasPermission = (permission: string) =>
     {
         switch(permission)
         {
             case 'settings':
-                return (GetSessionDataManager().userId === navigatorData.enteredGuestRoom.ownerId);
+                return (GetSessionDataManager().userId === navigatorData.enteredGuestRoom.ownerId || isMod );
             case 'staff_pick':
                 return GetSessionDataManager().securityLevel >= SecurityLevel.COMMUNITY;
             default: return false;
@@ -121,7 +123,7 @@ export const NavigatorRoomInfoView: FC<NavigatorRoomInfoViewProps> = props =>
                                             </Flex> }
                                         <Flex alignItems="center" gap={ 1 }>
                                             <Text variant="muted">{ LocalizeText('navigator.roomrating') }</Text>
-                                            <Text>{ navigatorData.enteredGuestRoom.score }</Text>
+                                            <Text>{ navigatorData.currentRoomRating }</Text>
                                         </Flex>
                                         { (navigatorData.enteredGuestRoom.tags.length > 0) &&
                                             <Flex alignItems="center" gap={ 1 }>
