@@ -3,8 +3,12 @@ import { FollowFriendMessageComposer, ILinkEventTracker, NewConsoleMessageEvent,
 import { FC, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AddEventLinkTracker, GetSessionDataManager, GetUserProfile, LocalizeText, PlaySound, RemoveLinkEventTracker, SendMessageComposer, SoundNames } from '../../../../api';
 import { Base, Button, ButtonGroup, Column, Flex, Grid, LayoutAvatarImageView, LayoutBadgeImageView, LayoutGridItem, LayoutItemCountView, NitroCardContentView, NitroCardHeaderView, NitroCardView, Text } from '../../../../common';
-import { FriendsMessengerIconEvent } from '../../../../events';
+import { FriendsMessengerIconEvent, HelpReportEvent } from '../../../../events';
 import { BatchUpdates, DispatchUiEvent, UseMessageEventHook } from '../../../../hooks';
+import { ChatEntryType } from '../../../chat-history/common/ChatEntryType';
+import { currentDate } from '../../../chat-history/common/Utilities';
+import { ReportType } from '../../../help/common/ReportType';
+import { AddMessengerChatEntry } from '../../common/GetMessengerHistory';
 import { MessengerThread } from '../../common/MessengerThread';
 import { MessengerThreadChat } from '../../common/MessengerThreadChat';
 import { useFriendsContext } from '../../FriendsContext';
@@ -30,6 +34,13 @@ export const FriendsMessengerView: FC<{}> = props =>
     {
         GetUserProfile(messageThreads[activeThreadIndex].participant.id);
     }, [messageThreads, activeThreadIndex]);
+
+    const report = useCallback(() =>
+    {
+        const reportEvent = new HelpReportEvent(ReportType.IM);
+        reportEvent.reportedUserId =  messageThreads[activeThreadIndex].participant.id;
+        DispatchUiEvent(reportEvent);
+    }, [activeThreadIndex, messageThreads]);
 
     const getFriend = useCallback((userId: number) =>
     {
@@ -96,6 +107,10 @@ export const FriendsMessengerView: FC<{}> = props =>
 
         thread.addMessage(parser.senderId, parser.messageText, parser.secondsSinceSent, parser.extraData);
 
+        const timeString = currentDate(parser.secondsSinceSent);
+
+        AddMessengerChatEntry({ id: -1, entityId: parser.senderId, name: '', message: parser.messageText, roomId: -1, timestamp: timeString, type: ChatEntryType.TYPE_IM });
+
         setMessageThreads(prevValue => [...prevValue]);
     }, [getMessageThreadWithIndex]);
 
@@ -110,6 +125,10 @@ export const FriendsMessengerView: FC<{}> = props =>
         if((threadIndex === -1) || !thread) return;
 
         thread.addMessage(parser.senderId, parser.messageText, 0, null, MessengerThreadChat.ROOM_INVITE);
+
+        const timeString = currentDate();
+        
+        AddMessengerChatEntry({ id: -1, entityId: parser.senderId, name: '', message: parser.messageText, roomId: -1, timestamp: timeString, type: ChatEntryType.TYPE_IM });
 
         setMessageThreads(prevValue => [...prevValue]);
     }, [getMessageThreadWithIndex]);
@@ -296,7 +315,7 @@ export const FriendsMessengerView: FC<{}> = props =>
                                                 <Base className="nitro-friends-spritesheet icon-profile-sm" />
                                             </Button>
                                         </ButtonGroup>
-                                        <Button variant="danger" onClick={ openProfile }>
+                                        <Button variant="danger" onClick={ report }>
                                             {LocalizeText('messenger.window.button.report')}
                                         </Button>
                                     </Flex>

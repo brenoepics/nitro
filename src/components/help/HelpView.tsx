@@ -29,6 +29,8 @@ const defaultReportState = {
     messageId: -1,
     threadId: -1,
     groupId: -1,
+    extraData: '',
+    roomObjectId: -1,
     message: '',
     currentStep: 0
 };
@@ -71,7 +73,7 @@ export const HelpView: FC<{}> = props =>
 
     const onHelpReportEvent = useCallback((event: HelpReportEvent) =>
     {
-        let report: IHelpReportState = defaultReportState;
+        let report: IHelpReportState = { ...defaultReportState };
 
         report.reportType =  event.reportType;
 
@@ -129,9 +131,7 @@ export const HelpView: FC<{}> = props =>
 
     useEffect(() =>
     {
-        if(!isVisible) return;
-
-        setHelpReportState(defaultReportState);
+        if(!isVisible) setHelpReportState(defaultReportState);
     }, [ isVisible ]);
 
     const CurrentStepView = useCallback(() =>

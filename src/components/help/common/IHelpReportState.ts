@@ -12,6 +12,8 @@ export interface IHelpReportState
     groupId: number;
     threadId: number;
     messageId: number;
+    extraData: string;
+    roomObjectId: number;
     message: string;
     currentStep: number;
 }

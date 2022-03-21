@@ -5,6 +5,7 @@ import { AutoGrid, Button, Column, Flex, LayoutGridItem, Text } from '../../../c
 import { ChatEntryType } from '../../chat-history/common/ChatEntryType';
 import { GetChatHistory } from '../../chat-history/common/GetChatHistory';
 import { IChatEntry } from '../../chat-history/common/IChatEntry';
+import { GetMessengerHistory } from '../../friends/common/GetMessengerHistory';
 import { ReportState } from '../common/ReportState';
 import { ReportType } from '../common/ReportType';
 import { useHelpContext } from '../HelpContext';
@@ -23,7 +24,7 @@ export const SelectReportedChatsView: FC<{}> = props =>
             case ReportType.EMERGENCY:
                 return GetChatHistory().chats.filter(chat => (chat.type === ChatEntryType.TYPE_CHAT) && (chat.entityId === reportedUserId) && (chat.entityType === RoomObjectType.USER));
             case ReportType.IM:
-                //todo; 
+                return GetMessengerHistory().filter(chat => chat.entityId === reportedUserId && chat.type === ChatEntryType.TYPE_IM);
         }
        
     }, [reportType, reportedUserId]);
