@@ -5,7 +5,7 @@
     align-items: center;
     width: 100%;
     top: 0;
-    height: 270px;
+    min-height: 1px;
     z-index: $chat-zindex;
     background-color: transparent;
     border-radius: 0;
@@ -47,6 +47,7 @@
         height: calc(100% - 0.5px);
         border-radius: 7px;
         z-index: 1;
+        background-color: #C8C8C8;
     }
 
     .chat-bubble {

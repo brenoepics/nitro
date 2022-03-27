@@ -1,9 +1,9 @@
-import { FrontPageItem, GetCatalogIndexComposer, GetCatalogPageComposer, GetClubGiftInfo, GetGiftWrappingConfigurationComposer, GetMarketplaceConfigurationMessageComposer, ILinkEventTracker, RoomPreviewer } from '@nitrots/nitro-renderer';
+import { CatalogPublishedMessageEvent, FrontPageItem, GetCatalogIndexComposer, GetCatalogPageComposer, GetClubGiftInfo, GetGiftWrappingConfigurationComposer, ILinkEventTracker, RoomPreviewer } from '@nitrots/nitro-renderer';
 import { FC, useCallback, useEffect, useState } from 'react';
-import { AddEventLinkTracker, GetRoomEngine, LocalizeText, PlaySound, RemoveLinkEventTracker, SendMessageComposer, SoundNames } from '../../api';
+import { AddEventLinkTracker, GetRoomEngine, LocalizeText, NotificationUtilities, PlaySound, RemoveLinkEventTracker, SendMessageComposer, SoundNames } from '../../api';
 import { Column, Grid, NitroCardContentView, NitroCardHeaderView, NitroCardTabsItemView, NitroCardTabsView, NitroCardView } from '../../common';
 import { CatalogPurchasedEvent } from '../../events';
-import { BatchUpdates, UseUiEvent } from '../../hooks';
+import { BatchUpdates, UseMessageEventHook, UseUiEvent } from '../../hooks';
 import { CatalogContextProvider } from './CatalogContext';
 import { CatalogMessageHandler } from './CatalogMessageHandler';
 import { CatalogPage } from './common/CatalogPage';
@@ -39,7 +39,7 @@ export const CatalogView: FC<{}> = props =>
     const [ frontPageItems, setFrontPageItems ] = useState<FrontPageItem[]>([]);
     const [ roomPreviewer, setRoomPreviewer ] = useState<RoomPreviewer>(null);
     const [ navigationHidden, setNavigationHidden ] = useState(false);
-    const [ purchaseOptions, setPurchaseOptions ] = useState<IPurchaseOptions>({});
+    const [ purchaseOptions, setPurchaseOptions ] = useState<IPurchaseOptions>({ quantity: 1, extraData: null, extraParamRequired: false, previewStuffData: null });
     const [ catalogOptions, setCatalogOptions ] = useState<ICatalogOptions>({});
 
     const resetState = useCallback(() =>
@@ -55,8 +55,20 @@ export const CatalogView: FC<{}> = props =>
             setActiveNodes([]);
             setSearchResult(null);
             setFrontPageItems([]);
+            setIsVisible(false);
         });
     }, []);
+
+    const onCatalogPublishedMessageEvent = useCallback((event: CatalogPublishedMessageEvent) =>
+    {
+        const wasVisible = isVisible;
+
+        resetState();
+
+        if(wasVisible) NotificationUtilities.simpleAlert(LocalizeText('catalog.alert.published.description'), null, null, null, LocalizeText('catalog.alert.published.title'));
+    }, [ isVisible, resetState ]);
+
+    UseMessageEventHook(CatalogPublishedMessageEvent, onCatalogPublishedMessageEvent);
 
     const getNodeById = useCallback((id: number, node: ICatalogNode) =>
     {
@@ -346,7 +358,6 @@ export const CatalogView: FC<{}> = props =>
     {
         if(!isVisible || rootNode) return;
 
-        SendMessageComposer(new GetMarketplaceConfigurationMessageComposer());
         SendMessageComposer(new GetGiftWrappingConfigurationComposer());
         SendMessageComposer(new GetClubGiftInfo());
         SendMessageComposer(new GetCatalogIndexComposer(currentType));

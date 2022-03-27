@@ -14,23 +14,31 @@
     "camera.publish.disabled": false,
     "hc.disabled": false,
     "badge.descriptions.enabled": true,
+    "motto.max.length": 38,
+    "bot.name.max.length": 15,
     "hotelview": {
         "show.avatar": true,
         "widgets": {
             "slot.1.widget": "promoarticle",
-            "slot.1.conf": "",
+            "slot.1.conf": {},
             "slot.2.widget": "widgetcontainer",
-            "slot.2.conf": "image:${image.library.url}web_promo_small/spromo_Canal_Bundle.png,texts:2021NitroPromo,btnLink:https://google.com",
+            "slot.2.conf": {
+                "image": "${image.library.url}web_promo_small/spromo_Canal_Bundle.png",
+                "texts": "2021NitroPromo",
+                "btnLink": "https://google.com"
+            },
             "slot.3.widget": "promoarticle",
-            "slot.3.conf": "",
+            "slot.3.conf": {},
             "slot.4.widget": "",
-            "slot.4.conf": "",
+            "slot.4.conf": {},
             "slot.5.widget": "",
-            "slot.5.conf": "",
+            "slot.5.conf": {},
             "slot.6.widget": "achievementcompetition_hall_of_fame",
-            "slot.6.conf": "",
+            "slot.6.conf": {
+                "campaign": "habboFameComp"
+            },
             "slot.7.widget": "",
-            "slot.7.conf": ""
+            "slot.7.conf": {}
         },
         "images": {
             "background": "${asset.url}/images/reception/stretch_blue.png",
@@ -53,14 +61,18 @@
         0,
         5
     ],
+    "catalog.links": {
+        "hc.buy_hc": "habbo_club",
+        "hc.hc_gifts": "club_gifts",
+        "pets.buy_food": "pet_food",
+        "pets.buy_saddle": "saddles"
+    },
     "hc.center": {
         "benefits.info": true,
         "payday.info": true,
         "gift.info": true,
         "benefits.habbopage": "habboclub",
-        "payday.habbopage": "hcpayday",
-        "catalog.buy": "habbo_club",
-        "catalog.gifts": "club_gifts"
+        "payday.habbopage": "hcpayday"
     },
     "respect.options": {
         "enabled": false,

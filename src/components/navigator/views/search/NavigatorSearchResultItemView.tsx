@@ -1,10 +1,9 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { RoomDataParser } from '@nitrots/nitro-renderer';
 import { FC, MouseEvent } from 'react';
-import { CreateRoomSession, GetSessionDataManager, TryVisitRoom } from '../../../../api';
+import { CreateRoomSession, DoorStateType, GetSessionDataManager, TryVisitRoom } from '../../../../api';
 import { Column, Flex, LayoutBadgeImageView, LayoutGridItemProps, LayoutRoomThumbnailView, Text } from '../../../../common';
-import { UpdateDoorStateEvent } from '../../../../events';
-import { DispatchUiEvent } from '../../../../hooks';
+import { useNavigatorContext } from '../../NavigatorContext';
 import { NavigatorSearchResultItemInfoView } from './NavigatorSearchResultItemInfoView';
 
 export interface NavigatorSearchResultItemViewProps extends LayoutGridItemProps
@@ -16,8 +15,9 @@ export interface NavigatorSearchResultItemViewProps extends LayoutGridItemProps
 export const NavigatorSearchResultItemView: FC<NavigatorSearchResultItemViewProps> = props =>
 {
     const { roomData = null, children = null, thumbnail = false, ...rest } = props;
+    const { setDoorData = null } = useNavigatorContext();
 
-    function getUserCounterColor(): string
+    const getUserCounterColor = () =>
     {
         const num: number = (100 * (roomData.userCount / roomData.maxUserCount));
 
@@ -53,10 +53,26 @@ export const NavigatorSearchResultItemView: FC<NavigatorSearchResultItemViewProp
             switch(roomData.doorMode)
             {
                 case RoomDataParser.DOORBELL_STATE:
-                    DispatchUiEvent(new UpdateDoorStateEvent(UpdateDoorStateEvent.START_DOORBELL, roomData));
+                    setDoorData(prevValue =>
+                        {
+                            const newValue = { ...prevValue };
+        
+                            newValue.roomInfo = roomData;
+                            newValue.state = DoorStateType.START_DOORBELL;
+        
+                            return newValue;
+                        });
                     return;
                 case RoomDataParser.PASSWORD_STATE:
-                    DispatchUiEvent(new UpdateDoorStateEvent(UpdateDoorStateEvent.START_PASSWORD, roomData));
+                    setDoorData(prevValue =>
+                        {
+                            const newValue = { ...prevValue };
+        
+                            newValue.roomInfo = roomData;
+                            newValue.state = DoorStateType.START_PASSWORD;
+        
+                            return newValue;
+                        });
                     return;
             }
         }
@@ -67,7 +83,7 @@ export const NavigatorSearchResultItemView: FC<NavigatorSearchResultItemViewProp
     if(thumbnail) return (
         <Column pointer overflow="hidden" alignItems="center" onClick={ visitRoom } gap={ 0 } className="navigator-item p-1 bg-light rounded-3 small mb-1 flex-column border border-muted" {...rest}>
             <LayoutRoomThumbnailView roomId={roomData.roomId} customUrl={roomData.officialRoomPicRef} className="d-flex flex-column align-items-center justify-content-end mb-1">
-                <LayoutBadgeImageView badgeCode={roomData.groupBadgeCode} isGroup={true} className={ 'position-absolute top-0 start-0 m-1' } />
+                { roomData.habboGroupId > 0 && <LayoutBadgeImageView badgeCode={roomData.groupBadgeCode} isGroup={true} className={'position-absolute top-0 start-0 m-1'} /> }
                 <Flex center className={ 'badge p-1 position-absolute m-1 ' + getUserCounterColor() } gap={ 1 }>
                     <FontAwesomeIcon icon="user" />
                     { roomData.userCount }

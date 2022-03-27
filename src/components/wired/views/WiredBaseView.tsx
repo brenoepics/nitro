@@ -1,41 +1,46 @@
-import { FC, useCallback, useEffect, useState } from 'react';
-import { GetSessionDataManager, LocalizeText } from '../../../api';
+import { FC, useEffect, useState } from 'react';
+import { GetSessionDataManager, LocalizeText, WiredFurniType, WiredSelectionVisualizer } from '../../../api';
 import { Button, Column, Flex, NitroCardContentView, NitroCardHeaderView, NitroCardView, Text } from '../../../common';
-import { WiredEvent } from '../../../events';
-import { BatchUpdates, DispatchUiEvent } from '../../../hooks';
-import { WiredFurniType } from '../common/WiredFurniType';
-import { WiredSelectionVisualizer } from '../common/WiredSelectionVisualizer';
-import { useWiredContext } from '../context/WiredContext';
+import { BatchUpdates } from '../../../hooks';
+import { useWiredContext } from '../WiredContext';
 import { WiredFurniSelectorView } from './WiredFurniSelectorView';
 
 export interface WiredBaseViewProps
 {
     wiredType: string;
     requiresFurni: number;
+    hasSpecialInput: boolean;
     save: () => void;
     validate?: () => boolean;
 }
 
 export const WiredBaseView: FC<WiredBaseViewProps> = props =>
 {
-    const { wiredType = '', requiresFurni = WiredFurniType.STUFF_SELECTION_OPTION_NONE, save = null, validate = null, children = null } = props;
+    const { wiredType = '', requiresFurni = WiredFurniType.STUFF_SELECTION_OPTION_NONE, save = null, validate = null, children = null, hasSpecialInput = false } = props;
     const [ wiredName, setWiredName ] = useState<string>(null);
     const [ wiredDescription, setWiredDescription ] = useState<string>(null);
-    const { trigger = null, setTrigger = null, setIntParams = null, setStringParam = null, setFurniIds = null } = useWiredContext();
+    const [ needsSave, setNeedsSave ] = useState<boolean>(false);
+    const { trigger = null, setTrigger = null, setIntParams = null, setStringParam = null, setFurniIds = null, saveWired = null } = useWiredContext();
 
-    const onSave = useCallback(() =>
+    const close = () => setTrigger(null);
+    
+    const onSave = () =>
     {
         if(validate && !validate()) return;
 
         if(save) save();
 
-        setTimeout(() => DispatchUiEvent(new WiredEvent(WiredEvent.SAVE_WIRED)), 1);
-    }, [ save, validate ]);
+        setNeedsSave(true);
+    }
 
-    const close = useCallback(() =>
+    useEffect(() =>
     {
-        setTrigger(null);
-    }, [ setTrigger ]);
+        if(!needsSave) return;
+
+        saveWired();
+
+        setNeedsSave(false);
+    }, [ needsSave, saveWired ]);
 
     useEffect(() =>
     {
@@ -57,23 +62,46 @@ export const WiredBaseView: FC<WiredBaseViewProps> = props =>
                 setWiredDescription(furniData.description);
             }
 
-            setIntParams(trigger.intData);
-            setStringParam(trigger.stringData);
-            setFurniIds(prevValue =>
-                {
-                    if(prevValue && prevValue.length) WiredSelectionVisualizer.clearSelectionShaderFromFurni(prevValue);
-
-                    if(trigger.selectedItems && trigger.selectedItems.length)
+            if(hasSpecialInput)
+            {
+                setIntParams(trigger.intData);
+                setStringParam(trigger.stringData);
+            }
+            
+            if(requiresFurni > WiredFurniType.STUFF_SELECTION_OPTION_NONE)
+            {
+                setFurniIds(prevValue =>
                     {
-                        WiredSelectionVisualizer.applySelectionShaderToFurni(trigger.selectedItems);
-
-                        return trigger.selectedItems;
-                    }
-
-                    return [];
-                });
+                        if(prevValue && prevValue.length) WiredSelectionVisualizer.clearSelectionShaderFromFurni(prevValue);
+    
+                        if(trigger.selectedItems && trigger.selectedItems.length)
+                        {
+                            WiredSelectionVisualizer.applySelectionShaderToFurni(trigger.selectedItems);
+    
+                            return trigger.selectedItems;
+                        }
+    
+                        return [];
+                    });
+            }
         });
-    }, [ trigger, setIntParams, setStringParam, setFurniIds ]);
+
+        return () =>
+        {
+            BatchUpdates(() =>
+            {
+                setNeedsSave(false);
+                setIntParams([]);
+                setStringParam(null);
+                setFurniIds(prevValue =>
+                    {
+                        if(prevValue && prevValue.length) WiredSelectionVisualizer.clearSelectionShaderFromFurni(prevValue);
+
+                        return [];
+                    });
+            });
+        }
+    }, [ trigger, hasSpecialInput, requiresFurni, setIntParams, setStringParam, setFurniIds ]);
 
     return (
         <NitroCardView uniqueKey="nitro-wired" className="nitro-wired" theme="primary-slim">

@@ -1,8 +1,8 @@
-import { ApproveNameMessageEvent, CatalogPageMessageEvent, CatalogPagesListEvent, CatalogPublishedMessageEvent, ClubGiftInfoEvent, GiftReceiverNotFoundEvent, GiftWrappingConfigurationEvent, HabboClubOffersMessageEvent, LimitedEditionSoldOutEvent, MarketplaceConfigurationEvent, MarketplaceMakeOfferResult, NodeData, ProductOfferEvent, PurchaseErrorMessageEvent, PurchaseNotAllowedMessageEvent, PurchaseOKMessageEvent, SellablePetPalettesMessageEvent, UserSubscriptionEvent } from '@nitrots/nitro-renderer';
+import { ApproveNameMessageEvent, CatalogPageMessageEvent, CatalogPagesListEvent, ClubGiftInfoEvent, GiftReceiverNotFoundEvent, GiftWrappingConfigurationEvent, HabboClubOffersMessageEvent, LimitedEditionSoldOutEvent, MarketplaceMakeOfferResult, NodeData, ProductOfferEvent, PurchaseErrorMessageEvent, PurchaseNotAllowedMessageEvent, PurchaseOKMessageEvent, SellablePetPalettesMessageEvent, UserSubscriptionEvent } from '@nitrots/nitro-renderer';
 import { GuildMembershipsMessageEvent } from '@nitrots/nitro-renderer/src/nitro/communication/messages/incoming/user/GuildMembershipsMessageEvent';
 import { FC, useCallback } from 'react';
 import { GetFurnitureData, GetProductDataForLocalization, LocalizeText, NotificationAlertType, NotificationUtilities } from '../../api';
-import { CatalogGiftReceiverNotFoundEvent, CatalogNameResultEvent, CatalogPurchasedEvent, CatalogPurchaseFailureEvent, CatalogPurchaseNotAllowedEvent, CatalogPurchaseSoldOutEvent, CatalogSetExtraPurchaseParameterEvent } from '../../events';
+import { CatalogGiftReceiverNotFoundEvent, CatalogNameResultEvent, CatalogPurchasedEvent, CatalogPurchaseFailureEvent, CatalogPurchaseNotAllowedEvent, CatalogPurchaseSoldOutEvent } from '../../events';
 import { BatchUpdates, DispatchUiEvent, UseMessageEventHook } from '../../hooks';
 import { useCatalogContext } from './CatalogContext';
 import { CatalogNode } from './common/CatalogNode';
@@ -20,7 +20,7 @@ import { SubscriptionInfo } from './common/SubscriptionInfo';
 
 export const CatalogMessageHandler: FC<{}> = props =>
 {
-    const { setIsBusy, pageId, currentType, setRootNode, setOffersToNodes, currentPage, setCurrentOffer, setFrontPageItems, resetState, showCatalogPage, setCatalogOptions = null } = useCatalogContext();
+    const { setIsBusy, pageId, currentType, setRootNode, setOffersToNodes, currentPage, setCurrentOffer, setFrontPageItems, resetState, showCatalogPage, setCatalogOptions, setPurchaseOptions } = useCatalogContext();
 
     const onCatalogPagesListEvent = useCallback((event: CatalogPagesListEvent) =>
     {
@@ -153,11 +153,21 @@ export const CatalogMessageHandler: FC<{}> = props =>
 
         if(offer.product && (offer.product.productType === ProductTypeEnum.WALL))
         {
-            DispatchUiEvent(new CatalogSetExtraPurchaseParameterEvent(offer.product.extraParam));
+            if(offer.product && (offer.product.productType === ProductTypeEnum.WALL))
+            {
+                setPurchaseOptions(prevValue =>
+                    {
+                        const newValue = { ...prevValue };
+        
+                        newValue.extraData =( offer.product.extraParam || null);
+        
+                        return newValue;
+                    });
+            }
         }
 
         // (this._isObjectMoverRequested) && (this._purchasableOffer)
-    }, [ currentType, currentPage, setCurrentOffer ]);
+    }, [ currentType, currentPage, setCurrentOffer, setPurchaseOptions ]);
 
     const onSellablePetPalettesMessageEvent = useCallback((event: SellablePetPalettesMessageEvent) =>
     {
@@ -241,11 +251,6 @@ export const CatalogMessageHandler: FC<{}> = props =>
             });
     }, [ setCatalogOptions ]);
 
-    const onCatalogPublishedMessageEvent = useCallback((event: CatalogPublishedMessageEvent) =>
-    {
-        resetState();
-    }, [ resetState ]);
-
     const onGiftWrappingConfigurationEvent = useCallback((event: GiftWrappingConfigurationEvent) =>
     {
         const parser = event.getParser();
@@ -279,18 +284,6 @@ export const CatalogMessageHandler: FC<{}> = props =>
         NotificationUtilities.simpleAlert(message, NotificationAlertType.DEFAULT, null, null, title);
     }, []);
 
-    const onMarketplaceConfigurationEvent = useCallback((event: MarketplaceConfigurationEvent) =>
-    {
-        const parser = event.getParser();
-
-        setCatalogOptions(prevValue =>
-            {
-                const marketplaceConfiguration = parser;
-
-                return { ...prevValue, marketplaceConfiguration };
-            });
-    }, [ setCatalogOptions ]);
-
     const onClubGiftInfoEvent = useCallback((event: ClubGiftInfoEvent) =>
     {
         const parser = event.getParser();
@@ -316,11 +309,9 @@ export const CatalogMessageHandler: FC<{}> = props =>
     UseMessageEventHook(GiftReceiverNotFoundEvent, onGiftReceiverNotFoundEvent);
     UseMessageEventHook(HabboClubOffersMessageEvent, onHabboClubOffersMessageEvent);
     UseMessageEventHook(UserSubscriptionEvent, onUserSubscriptionEvent);
-    UseMessageEventHook(CatalogPublishedMessageEvent, onCatalogPublishedMessageEvent);
     UseMessageEventHook(GiftWrappingConfigurationEvent, onGiftWrappingConfigurationEvent);
     UseMessageEventHook(ClubGiftInfoEvent, onClubGiftInfoEvent);
     UseMessageEventHook(MarketplaceMakeOfferResult, onMarketplaceMakeOfferResult);
-    UseMessageEventHook(MarketplaceConfigurationEvent, onMarketplaceConfigurationEvent);
 
     return null;
 }

@@ -3,19 +3,18 @@ import classNames from 'classnames';
 import { FC, useCallback, useEffect, useState } from 'react';
 import { CreateLinkEvent, LocalizeText, RoomWidgetZoomToggleMessage, SendMessageComposer } from '../../../../api';
 import { Base, Column, Flex, Text, TransitionAnimation, TransitionAnimationTypes } from '../../../../common';
-import { BatchUpdates, UseMessageEventHook, useSharedState } from '../../../../hooks';
-import { NavigatorData } from '../../../navigator/common/NavigatorData';
+import { BatchUpdates, UseMessageEventHook, useSharedNavigatorData } from '../../../../hooks';
 import { useRoomContext } from '../../RoomContext';
 
 export const RoomToolsWidgetView: FC<{}> = props =>
 {
-    const [ isZoomedIn, setIsZoomedIn ] = useState(false);
-    const [ roomName, setRoomName ] = useState(null);
-    const [ roomOwner, setRoomOwner ] = useState(null);
-    const [ roomTags, setRoomTags ] = useState(null);
-    const [ roomInfoDisplay, setRoomInfoDisplay ] = useState(false);
-    const [ isOpen, setIsOpen ] = useState(false);
-    const [ navigatorData, setNavigatorData ] = useSharedState<NavigatorData>('@navigatorData');
+    const [ isZoomedIn, setIsZoomedIn ] = useState<boolean>(false);
+    const [ roomName, setRoomName ] = useState<string>(null);
+    const [ roomOwner, setRoomOwner ] = useState<string>(null);
+    const [ roomTags, setRoomTags ] = useState<string[]>(null);
+    const [ roomInfoDisplay, setRoomInfoDisplay ] = useState<boolean>(false);
+    const [ isOpen, setIsOpen ] = useState<boolean>(false);
+    const [ navigatorData, setNavigatorData ] = useSharedNavigatorData();
     const { widgetHandler = null } = useRoomContext();
 
     const handleToolClick = (action: string) =>
@@ -85,7 +84,7 @@ export const RoomToolsWidgetView: FC<{}> = props =>
                             </Column>
                             { roomTags && roomTags.length > 0 &&
                                 <Flex gap={ 2 }>
-                                    { roomTags.map((tag: string) => <Text small variant="white" className="rounded bg-primary p-1">#{ tag }</Text>) }
+                                    { roomTags.map((tag, index) => <Text key={ index } small variant="white" className="rounded bg-primary p-1">#{ tag }</Text>) }
                                 </Flex> }
                         </Column>
                     </Column>

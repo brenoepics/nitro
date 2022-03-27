@@ -1,14 +1,13 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FC, useCallback, useEffect, useState } from 'react';
 import ReactSlider from 'react-slider';
-import { LocalizeText } from '../../../../api';
+import { LocalizeText, WiredFurniType } from '../../../../api';
 import { Button } from '../../../../common/Button';
 import { Column } from '../../../../common/Column';
 import { Flex } from '../../../../common/Flex';
 import { Text } from '../../../../common/Text';
 import { BatchUpdates } from '../../../../hooks';
-import { WiredFurniType } from '../../common/WiredFurniType';
-import { useWiredContext } from '../../context/WiredContext';
+import { useWiredContext } from '../../WiredContext';
 import { WiredActionBaseView } from './WiredActionBaseView';
 
 export const WiredActionGiveRewardView: FC<{}> = props =>
@@ -106,7 +105,7 @@ export const WiredActionGiveRewardView: FC<{}> = props =>
     }, [ trigger ]);
 
     return (
-        <WiredActionBaseView requiresFurni={ WiredFurniType.STUFF_SELECTION_OPTION_NONE } save={ save }>
+        <WiredActionBaseView requiresFurni={ WiredFurniType.STUFF_SELECTION_OPTION_NONE } hasSpecialInput={ true } save={ save }>
             <Flex alignItems="center" gap={ 1 }>
                 <input className="form-check-input" type="checkbox" id="limitEnabled" onChange={ event => setLimitEnabled(event.target.checked)} />
                 <Text>{ LocalizeText('wiredfurni.params.prizelimit', ['amount'], [limitEnabled ? rewardsLimit.toString() : '']) }</Text>
