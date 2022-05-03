@@ -1,8 +1,7 @@
 import { AvatarExpressionEnum, HabboClubLevelEnum, NitroEvent, RoomControllerLevel, RoomRotatingEffect, RoomSessionChatEvent, RoomSettingsComposer, RoomShakingEffect, RoomWidgetEnum, RoomZoomEvent, TextureUtils } from '@nitrots/nitro-renderer';
 import { GetClubMemberLevel, GetConfiguration, GetNitroInstance, SendMessageComposer } from '../../..';
 import { GetRoomEngine, GetSessionDataManager, LocalizeText, NotificationUtilities } from '../../../..';
-import { FloorplanEditorEvent } from '../../../../../events/floorplan-editor/FloorplanEditorEvent';
-import { DispatchUiEvent } from '../../../../../hooks';
+import { CreateLinkEvent } from '../../../CreateLinkEvent';
 import { RoomWidgetFloodControlEvent, RoomWidgetUpdateEvent } from '../events';
 import { RoomWidgetChatMessage, RoomWidgetChatSelectAvatarMessage, RoomWidgetChatTypingMessage, RoomWidgetMessage, RoomWidgetRequestWidgetMessage } from '../messages';
 import { RoomWidgetHandler } from './RoomWidgetHandler';
@@ -124,7 +123,7 @@ export class RoomWidgetChatInputHandler extends RoomWidgetHandler
 
                             return null;
                         case ':zoom':
-                            GetRoomEngine().events.dispatchEvent(new RoomZoomEvent(this.container.roomSession.roomId, parseInt(secondPart), false));
+                            GetRoomEngine().events.dispatchEvent(new RoomZoomEvent(this.container.roomSession.roomId, parseFloat(secondPart), false));
 
                             return null;
                         case ':screenshot':
@@ -138,11 +137,14 @@ export class RoomWidgetChatInputHandler extends RoomWidgetHandler
                             newWindow.document.write(image.outerHTML);
                             return null;
                         case ':pickall':
-                            NotificationUtilities.confirm(LocalizeText('room.confirm.pick_all'), () =>
+                            if(this.container.roomSession.isRoomOwner || GetSessionDataManager().isModerator)
+                            {
+                                NotificationUtilities.confirm(LocalizeText('room.confirm.pick_all'), () =>
                                 {
                                     GetSessionDataManager().sendSpecialCommandMessage(':pickall');
                                 },
                                 null, null, null, LocalizeText('generic.alert.title'));
+                            }
 
                             return null;
                         case ':furni':
@@ -155,12 +157,8 @@ export class RoomWidgetChatInputHandler extends RoomWidgetHandler
                             return null;
                         case ':floor':
                         case ':bcfloor':
-                            if(this.container.roomSession.controllerLevel >= RoomControllerLevel.ROOM_OWNER)
-                            {
-                                //this.container.processWidgetMessage(new RoomWidgetRequestWidgetMessage(RoomWidgetRequestWidgetMessage.FLOOR_EDITOR));
-                                DispatchUiEvent(new FloorplanEditorEvent(FloorplanEditorEvent.SHOW_FLOORPLAN_EDITOR));
-                            }
-
+                            if(this.container.roomSession.controllerLevel >= RoomControllerLevel.ROOM_OWNER) CreateLinkEvent('floor-editor/show');
+                            
                             return null;
                         case ':togglefps': {
                             if(GetNitroInstance().ticker.maxFPS > 0) GetNitroInstance().ticker.maxFPS = 0;
@@ -171,8 +169,7 @@ export class RoomWidgetChatInputHandler extends RoomWidgetHandler
                         case ':client':
                         case ':nitro':
                         case ':billsonnn':
-                            // this.container.notificationService.alertWithScrollableMessages([
-                            //     '<div class="d-flex flex-column justify-content-center align-items-center"><div class="nitro-info-box"></div><b>Version: ' + Nitro.RELEASE_VERSION + '</b><br />This client is powered by Nitro HTML5<br /><br /><div class="d-flex"><a class="btn btn-primary" href="https://discord.gg/66UR68FPgy" target="_blank">Discord</a><a class="btn btn-primary" href="https://git.krews.org/nitro" target="_blank">Git</a></div><br /></div>'], 'Nitro HTML5');
+                            NotificationUtilities.showNitroAlert();
                             return null;
                         case ':settings':
                             if(this.container.roomSession.isRoomOwner || GetSessionDataManager().isModerator)
